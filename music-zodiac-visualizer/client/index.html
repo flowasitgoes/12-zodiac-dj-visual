@@ -27,20 +27,27 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      background: #333;
+      background: transparent;
       color: #eee;
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
-    #controls button:hover { background: #555; }
-    #controls button.primary { background: #1a7f37; color: #fff; }
+    #controls button:hover { background: rgba(255,255,255,0.1); }
+    #controls button.primary { background: transparent; color: #fff; }
+    #controls button.primary:hover { background: rgba(26, 127, 55, 0.3); }
     #controls button svg,
     #controls .file-label svg {
       width: 22px;
       height: 22px;
-      fill: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
+    #controls #btn-play svg { stroke: #22c55e; }
+    #controls #btn-pause svg { stroke: #d1d5db; }
+    #controls .file-label svg { stroke: #3b82f6; }
     #controls select {
       padding: 6px 10px;
       border-radius: 6px;
@@ -56,13 +63,13 @@
       font-size: 14px;
       border-radius: 8px;
       cursor: pointer;
-      background: #2a4a6e;
+      background: transparent;
       color: #eee;
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
-    #controls .file-label:hover { background: #3a5a7e; }
+    #controls .file-label:hover { background: rgba(59, 130, 246, 0.25); }
     #controls .local-file-name {
       max-width: 140px;
       overflow: hidden;
@@ -78,13 +85,13 @@
   <div id="controls">
     <select id="audio-select"><option value="">-- 伺服器音檔 --</option></select>
     <button id="btn-play" class="primary" title="播放" aria-label="播放">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><polygon points="8,5 8,19 19,12" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button id="btn-pause" title="暫停" aria-label="暫停">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><rect x="6" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <label class="file-label" for="audio-file-input" title="選擇本機檔案" aria-label="選擇本機檔案">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/></svg>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </label>
     <input type="file" id="audio-file-input" accept="audio/*" />
     <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
