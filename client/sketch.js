@@ -4,7 +4,7 @@
  * Visual "mode" and "intensity" are derived from SONG dynamics (energy trend, beat density), not fixed time.
  */
 (function () {
-  const WS_URL = 'ws://' + (location.host || 'localhost:3000');
+  const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + (location.host || 'localhost:3000');
   let socket;
   let visualEngine;
   let audioEl;

@@ -10,7 +10,6 @@ Generative music visual art system: 12 panels (Chinese Zodiac) driven by real-ti
 ## Setup
 
 ```bash
-cd music-zodiac-visualizer
 npm install
 ```
 
@@ -59,6 +58,12 @@ Open http://localhost:3000. Choose a WAV from the dropdown and click **播放**.
 }
 ```
 
-## License
-
 MIT
+
+## Deploy (Vercel)
+
+專案已放在 **repo 根目錄**（沒有 `music-zodiac-visualizer` 子資料夾）。
+
+在 Vercel 請確認：
+1. **Settings → General → Root Directory** 設為 **空白** 或 **`.`**（使用 repo 根目錄）。
+2. 若之前曾設成 `music-zodiac-visualizer`，請改掉並重新 deploy，否則會找不到 `server/index.js`。
