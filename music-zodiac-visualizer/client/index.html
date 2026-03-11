@@ -56,6 +56,11 @@
       width: 66vw;
       height: 100%;
     }
+    @media (max-width: 768px) {
+      #canvas-container {
+        width: 100%;
+      }
+    }
     #controls {
       position: fixed;
       bottom: 0;
@@ -208,6 +213,55 @@
     #controls a.streamline-link:hover {
       background: rgba(255,255,255,0.1);
       border-color: rgba(255,255,255,0.4);
+    }
+
+    @media (max-width: 768px) {
+      #controls {
+        flex-wrap: wrap;
+        padding: 8px 12px 12px;
+        gap: 8px;
+        align-content: flex-start;
+      }
+      #controls .controls-center {
+        width: 100%;
+        flex: 0 0 auto;
+        order: 1;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+      #controls #link-soundcloud {
+        order: 2;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      #controls #link-soundcloud .soundcloud-favicon {
+        display: none;
+      }
+      #controls .controls-right {
+        order: 2;
+        gap: 8px;
+      }
+      #controls .controls-right #btn-about {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+      #controls .controls-right .streamline-link {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+      #controls #timeline-wrap {
+        min-width: 120px;
+      }
+      #controls select {
+        font-size: 12px;
+        padding: 4px 8px;
+        max-width: 120px;
+      }
+    }
+    @media (min-width: 769px) {
+      #controls #link-soundcloud .soundcloud-favicon {
+        display: none;
+      }
     }
 
     #about-overlay {
@@ -363,7 +417,7 @@
   </div>
 
   <div id="controls">
-    <a id="link-soundcloud" class="streamline-link" href="https://soundcloud.com/gctw/huting" target="_blank" rel="noopener noreferrer" title="SoundCloud">SoundCloud</a>
+    <a id="link-soundcloud" class="streamline-link" href="https://soundcloud.com/gctw/huting" target="_blank" rel="noopener noreferrer" title="SoundCloud"><img src="https://a1.sndcdn.com/favicon.ico" alt="" class="soundcloud-favicon" width="22" height="22" aria-hidden="true" /><span class="soundcloud-text">SoundCloud</span></a>
     <div class="controls-center">
       <div id="timeline-wrap">
         <span id="timeline-current" aria-label="目前時間">0:00</span>

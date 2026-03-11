@@ -41,9 +41,16 @@ function VisualEngine() {
   this.appliedOrderPhase = null;
 }
 
-VisualEngine.prototype.resize = function (w, h) {
+VisualEngine.prototype.resize = function (w, h, isMobile) {
   this.width = w;
   this.height = h;
+  if (isMobile) {
+    this.cols = 3;
+    this.rows = 4;
+  } else {
+    this.cols = 4;
+    this.rows = 3;
+  }
 };
 
 VisualEngine.prototype.draw = function (p, audioData) {

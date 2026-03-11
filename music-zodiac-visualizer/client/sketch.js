@@ -261,9 +261,16 @@
   }
 
   function computeCanvasSize() {
-    const w = Math.floor(windowWidth * 0.66);
-    const h = windowHeight;
-    return { w, h };
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+    let w, h;
+    if (isMobile) {
+      w = windowWidth;
+      h = Math.min(windowHeight - 100, Math.floor(windowWidth * (4 / 3)));
+    } else {
+      w = Math.floor(windowWidth * 0.66);
+      h = windowHeight;
+    }
+    return { w, h, isMobile };
   }
 
   window.setup = function () {
@@ -273,6 +280,7 @@
     frameRate(60);
     connectWS();
     visualEngine = new VisualEngine();
+    if (visualEngine.resize) visualEngine.resize(size.w, size.h, size.isMobile);
     audioEl = document.createElement('audio');
     document.body.appendChild(audioEl);
 
@@ -388,6 +396,6 @@
   window.windowResized = function () {
     const size = computeCanvasSize();
     resizeCanvas(size.w, size.h);
-    if (visualEngine) visualEngine.resize(size.w, size.h);
+    if (visualEngine) visualEngine.resize(size.w, size.h, size.isMobile);
   };
 })();
