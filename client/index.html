@@ -291,6 +291,22 @@
       box-shadow: -4px 0 24px rgba(0,0,0,0.4);
     }
     #about-panel.open { display: flex; }
+    @media (max-width: 768px) {
+      #about-panel {
+        left: 50%;
+        right: auto;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-height: 85vh;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.18);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      }
+      #about-panel::after,
+      #about-panel::before {
+        display: none;
+      }
+    }
     #about-panel::after {
       content: '';
       position: absolute;
