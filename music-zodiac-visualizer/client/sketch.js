@@ -1,6 +1,7 @@
 /**
  * p5.js sketch: canvas, WebSocket, audio element, visual engine.
  * currentAudioData: from WebSocket (WAV) or from client-side AnalyserNode (MP3).
+ * Visual "mode" and "intensity" are derived from SONG dynamics (energy trend, beat density), not fixed time.
  */
 (function () {
   const WS_URL = 'ws://' + (location.host || 'localhost:3000');
@@ -12,6 +13,15 @@
   let sourceNode = null;
   let lastMp3Energy = 0;
   let lastMp3Flux = 0;
+
+  // —— 依「歌曲起伏」算 mode / intensity（不用固定時間）——
+  const ENERGY_HISTORY_LEN = 90;  // ~1.5 sec @ 60fps
+  const energyHistory = [];
+  const beatFrames = [];          // 記錄發生 beat 的 frame 編號，用來算近期密度
+  let smoothedEnergy = 0;
+  let currentMode = 0;   // 0=calm, 1=build, 2=peak, 3=release
+  let modeHoldUntil = 0; // frame count: 不隨便切 mode，避免閃爍
+
   const defaultAudioData = () => ({
     time: 0,
     energy: 0,
@@ -23,6 +33,56 @@
     beat: false
   });
   window.currentAudioData = defaultAudioData();
+
+  function computeMusicState(raw, frameCount) {
+    const e = (raw && raw.energy) !== undefined ? raw.energy : 0;
+    const beat = !!(raw && raw.beat);
+
+    energyHistory.push(e);
+    if (energyHistory.length > ENERGY_HISTORY_LEN) energyHistory.shift();
+    const alpha = 0.12;
+    smoothedEnergy = smoothedEnergy * (1 - alpha) + e * alpha;
+
+    if (beat) beatFrames.push(frameCount);
+    const BEAT_WINDOW = 90;
+    while (beatFrames.length && frameCount - beatFrames[0] > BEAT_WINDOW) beatFrames.shift();
+    const beatDensity = Math.min(1, beatFrames.length / 12);
+
+    const recentFrames = Math.min(60, energyHistory.length);
+    const recent = energyHistory.slice(-recentFrames);
+    const avg = recent.length ? recent.reduce(function (a, b) { return a + b; }, 0) / recent.length : e;
+    const trend = e - avg;
+    const energyRising = trend > 0.03;
+    const energyFalling = trend < -0.03;
+    const isHigh = smoothedEnergy > 0.45 || e > 0.55 || beatDensity > 0.6;
+    const isLow = smoothedEnergy < 0.2 && e < 0.3;
+
+    if (frameCount > modeHoldUntil) {
+      if (isHigh && (currentMode === 1 || currentMode === 0)) {
+        currentMode = 2;
+        modeHoldUntil = frameCount + 25;
+      } else if (energyRising && !isHigh && (currentMode === 0 || currentMode === 3)) {
+        currentMode = 1;
+        modeHoldUntil = frameCount + 15;
+      } else if (energyFalling && currentMode === 2) {
+        currentMode = 3;
+        modeHoldUntil = frameCount + 30;
+      } else if (isLow && (currentMode === 3 || currentMode === 1)) {
+        currentMode = 0;
+        modeHoldUntil = frameCount + 20;
+      }
+    }
+
+    const intensity = Math.min(1, smoothedEnergy * 1.2);
+    return {
+      mode: currentMode,
+      intensity,
+      energyRising,
+      energyFalling,
+      beatDensity,
+      smoothedEnergy
+    };
+  }
 
   function connectWS() {
     if (socket && socket.readyState === 1) return;
@@ -47,6 +107,12 @@
 
   function isMp3(filename) {
     return filename && filename.toLowerCase().endsWith('.mp3');
+  }
+
+  let localFileObjectUrl = null;
+
+  function isUsingLocalFile() {
+    return audioEl && audioEl.src && audioEl.src.indexOf('blob:') === 0;
   }
 
   function setupMp3Analysis() {
@@ -126,6 +192,8 @@
     return true;
   }
 
+  let frameCount = 0;
+
   window.setup = function () {
     const cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent('canvas-container');
@@ -139,6 +207,17 @@
       const sel = document.getElementById('audio-select');
       const file = sel && sel.value;
       if (file) {
+        if (localFileObjectUrl) {
+          URL.revokeObjectURL(localFileObjectUrl);
+          localFileObjectUrl = null;
+        }
+        var nameEl = document.getElementById('local-file-name');
+        if (nameEl) nameEl.textContent = '';
+        energyHistory.length = 0;
+        beatFrames.length = 0;
+        smoothedEnergy = 0;
+        currentMode = 0;
+        modeHoldUntil = 0;
         audioEl.src = '/audio/' + encodeURIComponent(file);
         if (isMp3(file)) {
           setupMp3Analysis();
@@ -154,6 +233,33 @@
     document.getElementById('btn-pause').onclick = function () {
       audioEl.pause();
       sendPause();
+    };
+
+    document.getElementById('audio-file-input').onchange = function () {
+      var input = this;
+      var file = input.files && input.files[0];
+      if (!file) return;
+      if (localFileObjectUrl) {
+        URL.revokeObjectURL(localFileObjectUrl);
+        localFileObjectUrl = null;
+      }
+      localFileObjectUrl = URL.createObjectURL(file);
+      energyHistory.length = 0;
+      beatFrames.length = 0;
+      smoothedEnergy = 0;
+      currentMode = 0;
+      modeHoldUntil = 0;
+      audioEl.src = localFileObjectUrl;
+      setupMp3Analysis();
+      lastMp3Energy = 0;
+      lastMp3Flux = 0;
+      sendPause();
+      var sel = document.getElementById('audio-select');
+      if (sel) sel.value = '';
+      var nameEl = document.getElementById('local-file-name');
+      if (nameEl) nameEl.textContent = file.name;
+      audioEl.play().catch(function () {});
+      input.value = '';
     };
 
     fetch('/audio')
@@ -177,12 +283,25 @@
   };
 
   window.draw = function () {
+    frameCount++;
     const sel = document.getElementById('audio-select');
     const file = sel && sel.value;
-    if (isMp3(file) && audioEl && !audioEl.paused && !audioEl.ended) {
+    if (isUsingLocalFile() && audioEl && !audioEl.paused && !audioEl.ended) {
+      updateMp3AudioData();
+    } else if (file && isMp3(file) && audioEl && !audioEl.paused && !audioEl.ended) {
       updateMp3AudioData();
     }
-    const data = window.currentAudioData || defaultAudioData();
+    const raw = window.currentAudioData || defaultAudioData();
+    const musicState = computeMusicState(raw, frameCount);
+    const data = {
+      ...raw,
+      mode: musicState.mode,
+      intensity: musicState.intensity,
+      energyRising: musicState.energyRising,
+      energyFalling: musicState.energyFalling,
+      beatDensity: musicState.beatDensity,
+      smoothedEnergy: musicState.smoothedEnergy
+    };
     background(10, 10, 15);
     if (visualEngine) visualEngine.draw(this, data);
   };

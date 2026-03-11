@@ -39,14 +39,37 @@
       color: #eee;
       border: 1px solid #444;
     }
+    #controls input[type="file"] {
+      display: none;
+    }
+    #controls .file-label {
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #2a4a6e;
+      color: #eee;
+    }
+    #controls .file-label:hover { background: #3a5a7e; }
+    #controls .local-file-name {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
   <div id="controls">
-    <select id="audio-select"><option value="">-- 選擇音檔 --</option></select>
+    <select id="audio-select"><option value="">-- 伺服器音檔 --</option></select>
     <button id="btn-play" class="primary">播放</button>
     <button id="btn-pause">暫停</button>
+    <label class="file-label" for="audio-file-input">選擇本機檔案</label>
+    <input type="file" id="audio-file-input" accept="audio/*" />
+    <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
   <script src="visualEngine.js"></script>
