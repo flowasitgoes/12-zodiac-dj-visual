@@ -1,6 +1,6 @@
 /**
  * Visual Engine: 3x4 grid, 12 zodiac systems.
- * 約 1:00 後：圓環流轉 1 分鐘，接著每 5 秒一次 jump 交換位子（12 個生肖都重排），然後繼續流轉.
+ * 約 1:00 後：圓環流轉 1 分鐘，接著每 2 秒一次 jump（多數只交換兩個生肖），每 10 秒一次全部交換.
  */
 function VisualEngine() {
   this.width = 800;
@@ -27,13 +27,15 @@ function VisualEngine() {
   this.CONVEYOR_DURATION = 60;
   this.CONVEYOR_SPEED = 0.35;
   this.JUMP_START = this.CONVEYOR_START + this.CONVEYOR_DURATION;
-  this.JUMP_DURATION = 2.5;
-  this.JUMP_INTERVAL = 5;
+  this.JUMP_FULL_INTERVAL = 10;
+  this.JUMP_DURATION_FULL = 2.5;
+  this.JUMP_DURATION_PAIR = 1.5;
   this.currentOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
   this.jumpScrollOffset = (this.JUMP_START - this.CONVEYOR_START) * this.CONVEYOR_SPEED;
   this.jumpPhaseStart = null;
   this.jumpFromOrder = null;
   this.jumpToOrder = null;
+  this.jumpDuration = 2.5;
   this.appliedOrderPhase = null;
 }
 
@@ -57,9 +59,27 @@ VisualEngine.prototype.draw = function (p, audioData) {
 
   const isReveal = time >= this.REVEAL_START && time < this.CONVEYOR_START;
   const isConveyor = time >= this.CONVEYOR_START;
-  const jumpPhaseIndex = time >= this.JUMP_START ? Math.floor((time - this.JUMP_START) / this.JUMP_INTERVAL) : -1;
-  const jumpPhaseStart = jumpPhaseIndex >= 0 ? this.JUMP_START + jumpPhaseIndex * this.JUMP_INTERVAL : 0;
-  const isJump = time >= this.JUMP_START && time < jumpPhaseStart + this.JUMP_DURATION;
+  const tFromStart = time - this.JUMP_START;
+  let jumpPhaseStart = 0;
+  let phaseDuration = this.JUMP_DURATION_FULL;
+  let isFullSwapStep = false;
+  let stepIndex = -1;
+  if (tFromStart >= 0) {
+    const block = Math.floor(tFromStart / this.JUMP_FULL_INTERVAL);
+    const tInBlock = tFromStart - block * this.JUMP_FULL_INTERVAL;
+    const stepStarts = [0, 2.5, 4, 5.5, 7, 8.5];
+    const stepDurations = [2.5, 1.5, 1.5, 1.5, 1.5, 1.5];
+    stepIndex = 0;
+    while (stepIndex < 6 && tInBlock >= stepStarts[stepIndex] + stepDurations[stepIndex]) stepIndex++;
+    if (stepIndex < 6) {
+      jumpPhaseStart = this.JUMP_START + block * this.JUMP_FULL_INTERVAL + stepStarts[stepIndex];
+      phaseDuration = stepDurations[stepIndex];
+      isFullSwapStep = (stepIndex === 0);
+    } else {
+      stepIndex = -1;
+    }
+  }
+  const isJump = stepIndex >= 0 && time >= jumpPhaseStart && time < jumpPhaseStart + phaseDuration;
   const isConveyorAfterJump = time >= this.JUMP_START;
   const featuredIndex = isReveal
     ? Math.floor((time - this.REVEAL_START) / 5) % 12
@@ -70,13 +90,27 @@ VisualEngine.prototype.draw = function (p, audioData) {
 
   if (isJump) {
     if (this.jumpPhaseStart !== jumpPhaseStart) {
+      if (this.jumpPhaseStart != null && time >= this.jumpPhaseStart + this.jumpDuration) {
+        this.currentOrder = (this.jumpToOrder || this.currentOrder).slice();
+      }
       this.jumpPhaseStart = jumpPhaseStart;
       this.jumpFromOrder = this.currentOrder.slice();
-      this.jumpToOrder = shuffleArray(this.currentOrder.slice());
+      if (isFullSwapStep) {
+        this.jumpToOrder = shuffleArray(this.currentOrder.slice());
+      } else {
+        this.jumpToOrder = this.currentOrder.slice();
+        const i = Math.floor(Math.random() * 12);
+        let j = Math.floor(Math.random() * 12);
+        while (j === i) j = Math.floor(Math.random() * 12);
+        const t = this.jumpToOrder[i];
+        this.jumpToOrder[i] = this.jumpToOrder[j];
+        this.jumpToOrder[j] = t;
+      }
+      this.jumpDuration = phaseDuration;
     }
-  } else if (this.appliedOrderPhase !== jumpPhaseStart && jumpPhaseIndex >= 0 && time >= jumpPhaseStart + this.JUMP_DURATION) {
+  } else if (stepIndex >= 0 && this.jumpPhaseStart != null && time >= this.jumpPhaseStart + this.jumpDuration && this.appliedOrderPhase !== this.jumpPhaseStart) {
     this.currentOrder = (this.jumpToOrder || this.currentOrder).slice();
-    this.appliedOrderPhase = jumpPhaseStart;
+    this.appliedOrderPhase = this.jumpPhaseStart;
   }
 
   const cameraScale = (isConveyor || isConveyorAfterJump) ? 0.98 : 1;
@@ -199,7 +233,8 @@ VisualEngine.prototype.drawConveyorJump = function (p, audioData, ctx, cw, ch, w
   const toOrder = this.jumpToOrder;
   if (!fromOrder || !toOrder || phaseStart == null) return;
 
-  const t = Math.min(1, (time - phaseStart) / this.JUMP_DURATION);
+  const duration = this.jumpDuration || 2.5;
+  const t = Math.min(1, (time - phaseStart) / duration);
   const ease = 1 - Math.pow(1 - t, 2.2);
   const jumpY = 4 * (h * 0.08) * t * (1 - t);
   const jumpScale = 1 + 0.15 * 4 * t * (1 - t);
@@ -214,11 +249,15 @@ VisualEngine.prototype.drawConveyorJump = function (p, audioData, ctx, cw, ch, w
     const toAngle = (toSlot - scrollOffset) * angleStep;
     const angle = fromAngle + (toAngle - fromAngle) * ease;
 
+    const isMoving = fromSlot !== toSlot;
+    const moveScale = isMoving ? jumpScale : 1;
+    const moveY = isMoving ? jumpY : 0;
+
     const depth = Math.cos(angle);
-    const scale = (0.62 + 0.38 * (depth * 0.5 + 0.5)) * jumpScale;
+    const scale = (0.62 + 0.38 * (depth * 0.5 + 0.5)) * moveScale;
     const alpha = 0.55 + 0.45 * (depth * 0.5 + 0.5);
     const px = centerX + Math.cos(angle) * radiusX;
-    const py = centerY + Math.sin(angle) * radiusY * 0.85 - jumpY;
+    const py = centerY + Math.sin(angle) * radiusY * 0.85 - moveY;
 
     p.push();
     p.translate(px, py);

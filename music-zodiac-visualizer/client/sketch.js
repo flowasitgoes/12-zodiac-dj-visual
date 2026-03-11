@@ -260,8 +260,15 @@
     progEl.setAttribute('aria-valuenow', Math.round(pct));
   }
 
+  function computeCanvasSize() {
+    const w = Math.floor(windowWidth * 0.6);
+    const h = windowHeight;
+    return { w, h };
+  }
+
   window.setup = function () {
-    const cnv = createCanvas(windowWidth, windowHeight);
+    const size = computeCanvasSize();
+    const cnv = createCanvas(size.w, size.h);
     cnv.parent('canvas-container');
     frameRate(60);
     connectWS();
@@ -379,7 +386,8 @@
   };
 
   window.windowResized = function () {
-    resizeCanvas(windowWidth, windowHeight);
-    if (visualEngine) visualEngine.resize(windowWidth, windowHeight);
+    const size = computeCanvasSize();
+    resizeCanvas(size.w, size.h);
+    if (visualEngine) visualEngine.resize(size.w, size.h);
   };
 })();
