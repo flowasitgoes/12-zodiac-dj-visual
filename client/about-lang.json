@@ -2,7 +2,7 @@
   "en": {
     "title": "12.fun",
     "intro": [
-      "This is an interactive music visualizer and generative art experiment inspired by the ancient Chinese cultural system of the Twelve Zodiac Animals.",
+      "This is an interactive game - music visualizer and generative art  experiment inspired by the ancient Chinese cultural system of the Twelve Zodiac Animals.",
       "In traditional Chinese philosophy, the twelve zodiac animals represent different energies and personalities that coexist in a cyclical system of balance and regeneration. Each animal contributes its own strengths, forming a dynamic and harmonious universe.",
       "In 12.fun, this idea is reinterpreted through generative visual art and audio-reactive animation."
     ],
@@ -40,7 +40,7 @@
   "zh": {
     "title": "12.fun",
     "intro": [
-      "12.fun 是一個互動音樂視覺化與生成藝術實驗，靈感來自華人文化中的十二生肖。",
+      "這是一個互動遊戲，音樂視覺與生成藝術實驗，靈感來自華人文化中的十二生肖。",
       "在傳統華人哲學裡，十二生肖代表不同的能量與性格，在循環的平衡與再生中並存。每種動物各自貢獻其特質，形成動態而和諧的整體。",
       "在 12.fun 中，這個概念透過生成視覺藝術與聲音互動動畫重新詮釋。"
     ],
