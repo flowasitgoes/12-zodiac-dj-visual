@@ -62,14 +62,13 @@ MonkeySystem.prototype.update = function (a) {
 
 MonkeySystem.prototype.draw = function (p, x, y, w, h) {
   p.noStroke();
-  const alpha = Math.min(255, Math.floor((this._alpha || 0.8) * 255));
   this.rects.forEach(function (r) {
     if (r.life <= 0) return;
     const rx = x + r.x * w;
     const ry = y + r.y * h;
     const rw = r.w * Math.min(w, h);
     const rh = r.h * Math.min(w, h);
-    p.fill(this._r || 255, this._g || 200, this._b || 60, r.life * alpha);
+    p.fill(this._r || 255, this._g || 200, this._b || 60, r.life * 220);
     p.push();
     p.translate(rx, ry);
     p.rect(-rw / 2, -rh / 2, rw, rh);

@@ -68,8 +68,27 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
     #controls .file-label:hover { background: rgba(59, 130, 246, 0.25); }
+    #controls .file-label #music-thumbnail,
+    #controls .file-label #music-thumbnail-placeholder {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+    }
+    #controls .file-label #music-thumbnail-placeholder svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+    #controls .file-label #music-thumbnail {
+      object-fit: cover;
+      display: none;
+    }
+    #controls .file-label #music-thumbnail.show { display: block; }
+    #controls .file-label #music-thumbnail-placeholder { display: block; }
+    #controls .file-label #music-thumbnail-placeholder.hide { display: none; }
     #controls .local-file-name {
       max-width: 140px;
       overflow: hidden;
@@ -127,12 +146,16 @@
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><rect x="6" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <label class="file-label" for="audio-file-input" title="選擇本機檔案" aria-label="選擇本機檔案">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <img id="music-thumbnail" src="" alt="" />
+      <span id="music-thumbnail-placeholder">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
     </label>
     <input type="file" id="audio-file-input" accept="audio/*" />
     <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://unpkg.com/jsmediatags@3.9.5/dist/jsmediatags.min.js"></script>
   <script src="visualEngine.js"></script>
   <script src="zodiac/RatSystem.js"></script>
   <script src="zodiac/OxSystem.js"></script>

@@ -1,35 +1,76 @@
 /**
- * Rat: 迷宮式快跑 — 一條彎曲通道，小點在通道上快速奔跑，速度隨 beat/energy.
+ * Rat: 迷宮式快跑 — 通道每 15 秒換一種構成方式，小點在通道上快速奔跑.
  */
 function RatSystem() {
-  this.path = [];  // 通道轉折點 (0~1, 0~1)
-  this.buildPath();
+  this.path = [];
+  this._lastPathIndex = -1;
+  this.buildPath(0);
   this.runner = { t: 0, speed: 0.02 };
 }
 
-RatSystem.prototype.buildPath = function () {
+RatSystem.prototype.buildPath = function (variantIndex) {
   const pts = [];
-  const steps = [0.15, 0.35, 0.5, 0.65, 0.85];
-  let px = 0.1;
-  let py = 0.5;
-  pts.push({ x: px, y: py });
-  for (let i = 0; i < steps.length; i++) {
-    if (i % 2 === 0) {
-      px = steps[i];
-      pts.push({ x: px, y: py });
-      py = i % 4 === 0 ? 0.2 : 0.8;
-      pts.push({ x: px, y: py });
-    } else {
-      py = steps[i];
-      pts.push({ x: px, y: py });
-      px = px > 0.5 ? 0.15 : 0.85;
-      pts.push({ x: px, y: py });
+  const v = variantIndex % 5;
+
+  if (v === 0) {
+    const steps = [0.15, 0.35, 0.5, 0.65, 0.85];
+    let px = 0.1, py = 0.5;
+    pts.push({ x: px, y: py });
+    for (let i = 0; i < steps.length; i++) {
+      if (i % 2 === 0) {
+        px = steps[i];
+        pts.push({ x: px, y: py });
+        py = i % 4 === 0 ? 0.2 : 0.8;
+        pts.push({ x: px, y: py });
+      } else {
+        py = steps[i];
+        pts.push({ x: px, y: py });
+        px = px > 0.5 ? 0.15 : 0.85;
+        pts.push({ x: px, y: py });
+      }
     }
+    pts.push({ x: 0.9, y: py });
+  } else if (v === 1) {
+    pts.push({ x: 0.1, y: 0.5 });
+    pts.push({ x: 0.25, y: 0.5 });
+    pts.push({ x: 0.25, y: 0.25 });
+    pts.push({ x: 0.5, y: 0.25 });
+    pts.push({ x: 0.5, y: 0.75 });
+    pts.push({ x: 0.75, y: 0.75 });
+    pts.push({ x: 0.75, y: 0.35 });
+    pts.push({ x: 0.9, y: 0.35 });
+  } else if (v === 2) {
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8;
+      pts.push({
+        x: 0.12 + t * 0.76,
+        y: 0.5 + 0.35 * Math.sin(t * Math.PI * 3)
+      });
+    }
+  } else if (v === 3) {
+    pts.push({ x: 0.1, y: 0.5 });
+    pts.push({ x: 0.5, y: 0.5 });
+    pts.push({ x: 0.5, y: 0.15 });
+    pts.push({ x: 0.85, y: 0.15 });
+    pts.push({ x: 0.85, y: 0.5 });
+    pts.push({ x: 0.5, y: 0.5 });
+    pts.push({ x: 0.5, y: 0.85 });
+    pts.push({ x: 0.9, y: 0.85 });
+  } else {
+    pts.push({ x: 0.1, y: 0.5 });
+    pts.push({ x: 0.2, y: 0.2 });
+    pts.push({ x: 0.4, y: 0.2 });
+    pts.push({ x: 0.4, y: 0.8 });
+    pts.push({ x: 0.6, y: 0.8 });
+    pts.push({ x: 0.6, y: 0.3 });
+    pts.push({ x: 0.8, y: 0.3 });
+    pts.push({ x: 0.8, y: 0.6 });
+    pts.push({ x: 0.9, y: 0.6 });
   }
-  pts.push({ x: 0.9, y: py });
+
   this.path = pts;
   this.pathLength = this.computePathLength();
-}
+};
 
 RatSystem.prototype.computePathLength = function () {
   let len = 0;
@@ -59,6 +100,13 @@ RatSystem.prototype.getPathPoint = function (t) {
 };
 
 RatSystem.prototype.update = function (a) {
+  const time = (a && typeof a.time === 'number') ? a.time : 0;
+  const pathIndex = Math.floor(time / 15);
+  if (pathIndex !== this._lastPathIndex) {
+    this._lastPathIndex = pathIndex;
+    this.buildPath(pathIndex);
+  }
+
   const e = (a && a.energy) || 0;
   const beat = (a && a.beat) || false;
   const mode = (a && typeof a.mode === 'number') ? a.mode : 0;

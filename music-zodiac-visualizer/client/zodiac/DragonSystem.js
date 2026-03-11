@@ -77,7 +77,7 @@ DragonSystem.prototype.draw = function (p, x, y, w, h) {
     const cx = x + c.x * w;
     const cy = y + c.y * h;
     const r = Math.max(w, h) * c.size * (0.9 + intensity * 0.2);
-    const alpha = Math.min(0.55, c.opacity * (0.7 + intensity * 0.5));
+    const alpha = Math.min(0.5, c.opacity);
     const g = p.drawingContext.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0, 'rgba(200,180,255,' + alpha * 0.9 + ')');
     g.addColorStop(0.4, 'rgba(160,140,230,' + alpha * 0.5 + ')');

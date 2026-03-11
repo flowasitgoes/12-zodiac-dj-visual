@@ -110,6 +110,50 @@
   }
 
   let localFileObjectUrl = null;
+  let thumbnailObjectUrl = null;
+
+  function setMusicThumbnail(file) {
+    var thumbImg = document.getElementById('music-thumbnail');
+    var placeholder = document.getElementById('music-thumbnail-placeholder');
+    if (!thumbImg || !placeholder) return;
+    if (thumbnailObjectUrl) {
+      URL.revokeObjectURL(thumbnailObjectUrl);
+      thumbnailObjectUrl = null;
+    }
+    if (!file) {
+      thumbImg.classList.remove('show');
+      thumbImg.removeAttribute('src');
+      placeholder.classList.remove('hide');
+      return;
+    }
+    if (typeof jsmediatags === 'undefined') {
+      placeholder.classList.remove('hide');
+      thumbImg.classList.remove('show');
+      return;
+    }
+    jsmediatags.read(file, {
+      onSuccess: function (tag) {
+        var pic = tag.tags.picture;
+        if (!pic || !pic.data) {
+          placeholder.classList.remove('hide');
+          thumbImg.classList.remove('show');
+          return;
+        }
+        var blob = new Blob([new Uint8Array(pic.data)], { type: pic.format });
+        var url = URL.createObjectURL(blob);
+        if (thumbnailObjectUrl) URL.revokeObjectURL(thumbnailObjectUrl);
+        thumbnailObjectUrl = url;
+        thumbImg.src = url;
+        thumbImg.alt = 'Album art';
+        thumbImg.classList.add('show');
+        placeholder.classList.add('hide');
+      },
+      onError: function () {
+        placeholder.classList.remove('hide');
+        thumbImg.classList.remove('show');
+      }
+    });
+  }
 
   function isUsingLocalFile() {
     return audioEl && audioEl.src && audioEl.src.indexOf('blob:') === 0;
@@ -233,6 +277,7 @@
           URL.revokeObjectURL(localFileObjectUrl);
           localFileObjectUrl = null;
         }
+        setMusicThumbnail(null);
         var nameEl = document.getElementById('local-file-name');
         if (nameEl) nameEl.textContent = '';
         energyHistory.length = 0;
@@ -276,6 +321,7 @@
       lastMp3Energy = 0;
       lastMp3Flux = 0;
       sendPause();
+      setMusicThumbnail(file);
       var sel = document.getElementById('audio-select');
       if (sel) sel.value = '';
       var nameEl = document.getElementById('local-file-name');
