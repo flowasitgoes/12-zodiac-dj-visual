@@ -80,29 +80,34 @@ app.get('/audio/:filename', (req, res) => {
   return res.status(400).send('Only .wav or .mp3 files');
 });
 
-// Create HTTP server (WebSocket will attach to it)
+// Create HTTP server (WebSocket will attach only when run directly)
 const server = http.createServer(app);
 
-// Attach WebSocket and wire audio analyzer to broadcast
-require('./websocket')(server);
-const ws = require('./websocket');
-const audioAnalyzer = require('./audioAnalyzer');
-ws.setBroadcastControl((cmd, file) => {
-  if (cmd === 'start') {
-    const dir = getAudioDir();
-    const list = dir ? fs.readdirSync(dir).filter(f => f.toLowerCase().endsWith('.wav')) : [];
-    const name = (file && list.includes(file)) ? file : list[0];
-    if (name) {
-      audioAnalyzer.load(name);
-      audioAnalyzer.startPlayback((data) => ws.broadcast(data));
+if (require.main === module) {
+  // Run directly (e.g. node server/index.js): attach WebSocket and start server
+  require('./websocket')(server);
+  const ws = require('./websocket');
+  const audioAnalyzer = require('./audioAnalyzer');
+  ws.setBroadcastControl((cmd, file) => {
+    if (cmd === 'start') {
+      const dir = getAudioDir();
+      const list = dir ? fs.readdirSync(dir).filter(f => f.toLowerCase().endsWith('.wav')) : [];
+      const name = (file && list.includes(file)) ? file : list[0];
+      if (name) {
+        audioAnalyzer.load(name);
+        audioAnalyzer.startPlayback((data) => ws.broadcast(data));
+      }
+    } else if (cmd === 'pause') {
+      audioAnalyzer.stopPlayback();
     }
-  } else if (cmd === 'pause') {
-    audioAnalyzer.stopPlayback();
-  }
-});
+  });
 
-server.listen(PORT, () => {
-  console.log(`Server http://localhost:${PORT}`);
-  const ad = getAudioDir();
-  console.log(`Audio dir: ${ad || '(none - add server/audio or audio/ with .wav files)'}`);
-});
+  server.listen(PORT, () => {
+    console.log(`Server http://localhost:${PORT}`);
+    const ad = getAudioDir();
+    console.log(`Audio dir: ${ad || '(none - add server/audio or audio/ with .wav files)'}`);
+  });
+} else {
+  // Required by Vercel (or other serverless): export app only (no WebSocket)
+  module.exports = app;
+}

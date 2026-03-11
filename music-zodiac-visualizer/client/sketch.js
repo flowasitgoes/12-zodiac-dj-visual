@@ -357,7 +357,7 @@
           opt.textContent = f.name;
           sel.appendChild(opt);
         });
-        const defaultNames = ['Guanjun - Huting.mp3', 'Guanjun - 520.mp3'];
+        const defaultNames = ['Guan - Huting.mp3', 'Guan - 520.mp3'];
         for (var d = 0; d < defaultNames.length; d++) {
           if (Array.isArray(list) && list.some(function (f) { return f.name === defaultNames[d]; })) {
             sel.value = defaultNames[d];
