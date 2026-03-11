@@ -1,0 +1,78 @@
+{
+  "en": {
+    "title": "12.fun",
+    "intro": [
+      "This is an interactive music visualizer and generative art experiment inspired by the ancient Chinese cultural system of the Twelve Zodiac Animals.",
+      "In traditional Chinese philosophy, the twelve zodiac animals represent different energies and personalities that coexist in a cyclical system of balance and regeneration. Each animal contributes its own strengths, forming a dynamic and harmonious universe.",
+      "In 12.fun, this idea is reinterpreted through generative visual art and audio-reactive animation."
+    ],
+    "zodiacHeading": "Each zodiac animal becomes a visual system",
+    "zodiacItems": [
+      { "name": "Rat", "desc": "agility and rhythm" },
+      { "name": "Ox", "desc": "stability and weight" },
+      { "name": "Tiger", "desc": "explosive energy" },
+      { "name": "Rabbit", "desc": "softness and flow" },
+      { "name": "Dragon", "desc": "fluid motion and transformation" },
+      { "name": "Snake", "desc": "waves and curves" },
+      { "name": "Horse", "desc": "speed and momentum" },
+      { "name": "Goat", "desc": "organic branching forms" },
+      { "name": "Monkey", "desc": "playful randomness" },
+      { "name": "Rooster", "desc": "rhythmic bursts" },
+      { "name": "Dog", "desc": "orbital motion and loyalty" },
+      { "name": "Pig", "desc": "soft harmony and round forms" }
+    ],
+    "usersCanHeading": "Users can:",
+    "usersCanItems": [
+      "Play music directly on the site",
+      "Upload their own audio files",
+      "Watch music transform into dynamic generative visuals"
+    ],
+    "exploration": "12.fun is an exploration of music, culture, and algorithmic art, where every song creates a unique visual universe.",
+    "aboutCreatorHeading": "About the Creator",
+    "aboutCreatorIntro": [
+      "Guan is a DJ, artist, and programmer based in Taiwan who loves playful design, generative visuals, and experimental web projects.",
+      "His work often explores the intersection of music, art, and interactive programming, creating digital experiences that feel both artistic and game-like."
+    ],
+    "genresLabel": "As a DJ, he occasionally performs and plays genres such as:",
+    "genres": ["Minimal", "Deep House", "Dub Techno", "IDM"],
+    "aboutCreatorClosing": "He is especially known for crafting long DJ sets and atmospheric musical journeys, patiently building energy and texture over time."
+  },
+  "zh": {
+    "title": "12.fun",
+    "intro": [
+      "12.fun 是一個互動音樂視覺化與生成藝術實驗，靈感來自華人文化中的十二生肖。",
+      "在傳統華人哲學裡，十二生肖代表不同的能量與性格，在循環的平衡與再生中並存。每種動物各自貢獻其特質，形成動態而和諧的整體。",
+      "在 12.fun 中，這個概念透過生成視覺藝術與聲音互動動畫重新詮釋。"
+    ],
+    "zodiacHeading": "每種生肖對應一套視覺系統",
+    "zodiacItems": [
+      { "name": "鼠", "desc": "靈活與節奏" },
+      { "name": "牛", "desc": "穩重與重量" },
+      { "name": "虎", "desc": "爆發力" },
+      { "name": "兔", "desc": "柔軟與流動" },
+      { "name": "龍", "desc": "流體與變幻" },
+      { "name": "蛇", "desc": "波紋與曲線" },
+      { "name": "馬", "desc": "速度與動能" },
+      { "name": "羊", "desc": "有機分支形態" },
+      { "name": "猴", "desc": "玩心與隨機" },
+      { "name": "雞", "desc": "節奏性迸發" },
+      { "name": "狗", "desc": "軌道與忠誠" },
+      { "name": "豬", "desc": "柔和諧和與圓潤" }
+    ],
+    "usersCanHeading": "使用者可以：",
+    "usersCanItems": [
+      "在網站上直接播放音樂",
+      "上傳自己的音檔",
+      "看著音樂即時轉化成動態的生成視覺"
+    ],
+    "exploration": "12.fun 探索音樂、文化與演算藝術的交會，每首歌都會生成獨一無二的視覺宇宙。",
+    "aboutCreatorHeading": "關於創作者",
+    "aboutCreatorIntro": [
+      "Guan 是定居台灣的 DJ、藝術家與程式創作者，熱愛遊戲感設計、生成視覺與實驗性的網路作品。",
+      "他的作品常遊走音樂、藝術與互動程式的交集，創造既像藝術又像遊戲的數位體驗。"
+    ],
+    "genresLabel": "作為 DJ，他偶爾演出，擅長的曲風包括：",
+    "genres": ["Minimal", "Deep House", "Dub Techno", "IDM"],
+    "aboutCreatorClosing": "他尤其以編排長時間的 DJ set 與氛圍式音樂旅程為樂趣，在時間中細膩堆疊畫面與質地。"
+  }
+}

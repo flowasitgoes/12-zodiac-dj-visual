@@ -167,10 +167,159 @@
       background: rgba(255,255,255,0.1);
       border-color: rgba(255,255,255,0.4);
     }
+
+    #about-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      background: transparent;
+      display: none;
+    }
+    #about-overlay.open { display: block; }
+
+    #about-panel {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: min(34vw, 420px);
+      height: 66vh;
+      max-height: 80vh;
+      background: #0a0a0a;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+    }
+    #about-panel.open { display: flex; }
+    #about-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -11px;
+      right: 28px;
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 12px solid #0a0a0a;
+      filter: drop-shadow(0 1px 0 rgba(255,255,255,0.18));
+    }
+    #about-panel::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 27px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 13px solid rgba(255,255,255,0.18);
+      z-index: -1;
+    }
+    #about-panel .about-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #about-panel .about-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #about-panel .about-lang-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+    }
+    #about-panel .about-lang-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+    #about-panel .about-header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.95);
+      margin: 0;
+    }
+    #about-panel .about-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #about-panel .about-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    #about-panel .about-body {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    #about-panel .about-body h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.95);
+      margin: 1.2em 0 0.5em;
+    }
+    #about-panel .about-body h2:first-child { margin-top: 0; }
+    #about-panel .about-body p { margin-bottom: 0.75em; }
+    #about-panel .about-body ul { margin: 0.5em 0 1em 1.2em; }
+    #about-panel .about-body li { margin-bottom: 0.35em; }
+    #about-panel .about-body::-webkit-scrollbar {
+      width: 8px;
+    }
+    #about-panel .about-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #about-panel .about-body::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+    #about-panel .about-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    #about-panel .about-body {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
+
+  <div id="about-overlay" aria-hidden="true"></div>
+  <div id="about-panel" role="dialog" aria-labelledby="about-header-title" aria-modal="true">
+    <div class="about-header">
+      <h2 id="about-header-title" class="about-header-title">12.fun</h2>
+      <div class="about-header-right">
+        <button type="button" class="about-lang-btn" id="about-lang-btn" aria-label="Switch language">EN / 中文</button>
+        <button type="button" class="about-close" id="about-close" aria-label="關閉">×</button>
+      </div>
+    </div>
+    <div class="about-body" id="about-body"></div>
+  </div>
+
   <div id="controls">
     <a id="link-soundcloud" class="streamline-link" href="https://soundcloud.com/gctw/huting" target="_blank" rel="noopener noreferrer" title="SoundCloud">SoundCloud</a>
     <div class="controls-center">
@@ -218,5 +367,82 @@
   <script src="zodiac/DogSystem.js"></script>
   <script src="zodiac/PigSystem.js"></script>
   <script src="sketch.js"></script>
+  <script>
+    (function () {
+      var btn = document.getElementById('btn-about');
+      var panel = document.getElementById('about-panel');
+      var overlay = document.getElementById('about-overlay');
+      var closeBtn = document.getElementById('about-close');
+      var langBtn = document.getElementById('about-lang-btn');
+      var bodyEl = document.getElementById('about-body');
+      var headerTitleEl = document.getElementById('about-header-title');
+      var aboutData = null;
+      var currentLang = 'en';
+
+      function openAbout() {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+      }
+      function closeAbout() {
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+
+      function renderAbout(lang) {
+        if (!aboutData || !aboutData[lang]) return;
+        var d = aboutData[lang];
+        if (headerTitleEl) headerTitleEl.textContent = d.title;
+        var html = '';
+        (d.intro || []).forEach(function (p) { html += '<p>' + escapeHtml(p) + '</p>'; });
+        html += '<h2>' + escapeHtml(d.zodiacHeading) + '</h2><ul>';
+        (d.zodiacItems || []).forEach(function (item) {
+          html += '<li><strong>' + escapeHtml(item.name) + '</strong> — ' + escapeHtml(item.desc) + '</li>';
+        });
+        html += '</ul><p><strong>' + escapeHtml(d.usersCanHeading) + '</strong></p><ul>';
+        (d.usersCanItems || []).forEach(function (item) { html += '<li>' + escapeHtml(item) + '</li>'; });
+        html += '</ul><p>' + escapeHtml(d.exploration) + '</p>';
+        html += '<h2>' + escapeHtml(d.aboutCreatorHeading) + '</h2>';
+        (d.aboutCreatorIntro || []).forEach(function (p) { html += '<p>' + escapeHtml(p) + '</p>'; });
+        html += '<p>' + escapeHtml(d.genresLabel) + '</p><ul>';
+        (d.genres || []).forEach(function (g) { html += '<li>' + escapeHtml(g) + '</li>'; });
+        html += '</ul><p>' + escapeHtml(d.aboutCreatorClosing) + '</p>';
+        bodyEl.innerHTML = html;
+      }
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function setLang(lang) {
+        currentLang = lang;
+        if (langBtn) langBtn.textContent = lang === 'en' ? 'EN / 中文' : 'EN / 中文';
+        renderAbout(lang);
+      }
+
+      function toggleLang() {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        renderAbout(currentLang);
+      }
+
+      if (btn) btn.addEventListener('click', openAbout);
+      if (closeBtn) closeBtn.addEventListener('click', closeAbout);
+      if (overlay) overlay.addEventListener('click', closeAbout);
+      if (langBtn) langBtn.addEventListener('click', toggleLang);
+
+      fetch('about-lang.json')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          aboutData = data;
+          setLang('en');
+        })
+        .catch(function () {
+          bodyEl.innerHTML = '<p>Unable to load content.</p>';
+        });
+    })();
+  </script>
 </body>
 </html>
