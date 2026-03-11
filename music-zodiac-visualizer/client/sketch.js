@@ -274,9 +274,12 @@
           opt.textContent = f.name;
           sel.appendChild(opt);
         });
-        const defaultName = 'Amor Satyr - Cortex.mp3';
-        if (Array.isArray(list) && list.some(function (f) { return f.name === defaultName; })) {
-          sel.value = defaultName;
+        const defaultNames = ['Guanjun - 520.mp3', 'Guanjun - Huting.mp3'];
+        for (var d = 0; d < defaultNames.length; d++) {
+          if (Array.isArray(list) && list.some(function (f) { return f.name === defaultNames[d]; })) {
+            sel.value = defaultNames[d];
+            break;
+          }
         }
       })
       .catch(function () {});

@@ -22,16 +22,25 @@
       border-radius: 12px;
     }
     #controls button {
-      padding: 8px 20px;
+      padding: 8px 14px;
       font-size: 14px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       background: #333;
       color: #eee;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     #controls button:hover { background: #555; }
     #controls button.primary { background: #1a7f37; color: #fff; }
+    #controls button svg,
+    #controls .file-label svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
     #controls select {
       padding: 6px 10px;
       border-radius: 6px;
@@ -43,12 +52,15 @@
       display: none;
     }
     #controls .file-label {
-      padding: 8px 16px;
+      padding: 8px 14px;
       font-size: 14px;
       border-radius: 8px;
       cursor: pointer;
       background: #2a4a6e;
       color: #eee;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     #controls .file-label:hover { background: #3a5a7e; }
     #controls .local-file-name {
@@ -65,9 +77,15 @@
   <div id="canvas-container"></div>
   <div id="controls">
     <select id="audio-select"><option value="">-- 伺服器音檔 --</option></select>
-    <button id="btn-play" class="primary">播放</button>
-    <button id="btn-pause">暫停</button>
-    <label class="file-label" for="audio-file-input">選擇本機檔案</label>
+    <button id="btn-play" class="primary" title="播放" aria-label="播放">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button id="btn-pause" title="暫停" aria-label="暫停">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <label class="file-label" for="audio-file-input" title="選擇本機檔案" aria-label="選擇本機檔案">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/></svg>
+    </label>
     <input type="file" id="audio-file-input" accept="audio/*" />
     <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
   </div>
