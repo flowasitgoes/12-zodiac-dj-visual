@@ -78,12 +78,48 @@
       font-size: 12px;
       color: #aaa;
     }
+    #timeline-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 200px;
+    }
+    #timeline-current, #timeline-duration {
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+      color: #9ca3af;
+      min-width: 2.2em;
+    }
+    #timeline-bar-wrap {
+      flex: 1;
+      height: 6px;
+      border: 1px solid #4b5563;
+      border-radius: 3px;
+      background: transparent;
+      overflow: hidden;
+    }
+    #timeline-progress {
+      height: 100%;
+      width: 0%;
+      border-radius: 2px;
+      background: transparent;
+      border-right: 2px solid #22c55e;
+      box-sizing: border-box;
+      transition: width 0.15s linear;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
   <div id="controls">
-    <select id="audio-select"><option value="">-- 伺服器音檔 --</option></select>
+    <div id="timeline-wrap">
+      <span id="timeline-current" aria-label="目前時間">0:00</span>
+      <div id="timeline-bar-wrap">
+        <div id="timeline-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <span id="timeline-duration" aria-label="總長度">0:00</span>
+    </div>
+    <select id="audio-select"><option value="">-- choose music --</option></select>
     <button id="btn-play" class="primary" title="播放" aria-label="播放">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><polygon points="8,5 8,19 19,12" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>

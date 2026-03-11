@@ -194,6 +194,28 @@
 
   let frameCount = 0;
 
+  function formatTime(sec) {
+    if (!isFinite(sec) || sec < 0) return '0:00';
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateTimeline(el, currentTime) {
+    var curEl = document.getElementById('timeline-current');
+    var durEl = document.getElementById('timeline-duration');
+    var progEl = document.getElementById('timeline-progress');
+    if (!curEl || !durEl || !progEl) return;
+    var t = typeof currentTime === 'number' ? currentTime : (el && el.currentTime) || 0;
+    var d = (el && el.duration) || 0;
+    if (!isFinite(d) || d <= 0) d = 0;
+    curEl.textContent = formatTime(t);
+    durEl.textContent = formatTime(d);
+    var pct = d > 0 ? Math.min(100, (t / d) * 100) : 0;
+    progEl.style.width = pct + '%';
+    progEl.setAttribute('aria-valuenow', Math.round(pct));
+  }
+
   window.setup = function () {
     const cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent('canvas-container');
@@ -267,14 +289,14 @@
       .then(function (list) {
         const sel = document.getElementById('audio-select');
         if (!sel) return;
-        sel.innerHTML = '<option value="">-- 選擇音檔 --</option>';
+        sel.innerHTML = '<option value="">-- choose music --</option>';
         (list || []).forEach(function (f) {
           const opt = document.createElement('option');
           opt.value = f.name;
           opt.textContent = f.name;
           sel.appendChild(opt);
         });
-        const defaultNames = ['Guanjun - 520.mp3', 'Guanjun - Huting.mp3'];
+        const defaultNames = ['Guanjun - Huting.mp3', 'Guanjun - 520.mp3'];
         for (var d = 0; d < defaultNames.length; d++) {
           if (Array.isArray(list) && list.some(function (f) { return f.name === defaultNames[d]; })) {
             sel.value = defaultNames[d];
@@ -305,6 +327,7 @@
       beatDensity: musicState.beatDensity,
       smoothedEnergy: musicState.smoothedEnergy
     };
+    updateTimeline(audioEl, raw.time);
     background(10, 10, 15);
     if (visualEngine) visualEngine.draw(this, data);
   };
