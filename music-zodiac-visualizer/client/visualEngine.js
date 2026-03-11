@@ -85,11 +85,9 @@ VisualEngine.prototype.drawGrid = function (p, audioData, ctx, cw, ch, isReveal,
     const row = Math.floor(i / this.cols);
     const x = col * cw;
     const y = row * ch;
-    let opacity = 1;
     let scale = 1;
-    if (isReveal && featuredIndex >= 0) {
-      opacity = i === featuredIndex ? 1 : 0.38;
-      scale = i === featuredIndex ? 1.06 : 1;
+    if (isReveal && featuredIndex >= 0 && i === featuredIndex) {
+      scale = 1.06;
     }
     const cellTilt = (col - 1.5) * 0.012 + (row - 1) * 0.008 + (mode - 1) * 0.01 + (intensity - 0.5) * 0.02;
     p.push();
@@ -99,7 +97,6 @@ VisualEngine.prototype.drawGrid = function (p, audioData, ctx, cw, ch, isReveal,
     p.rotate(cellTilt);
     p.translate(-cw / 2, -ch / 2);
     ctx.save();
-    if (opacity < 1) ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.rect(0, 0, cw, ch);
     ctx.clip();
