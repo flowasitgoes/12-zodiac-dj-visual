@@ -238,6 +238,63 @@
 
   let frameCount = 0;
 
+  // —— 點擊畫布：爆炸／散列效果（療癒風），不照抄參考程式 ——
+  const BURST_DURATION_MS = 2200;
+  const BURST_PARTICLE_COUNT = 95;
+  let clickBursts = [];
+
+  function spawnClickBurst(px, py) {
+    const particles = [];
+    for (let i = 0; i < BURST_PARTICLE_COUNT; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.25 + Math.random() * 0.7;
+      const size = 1.5 + Math.random() * 3;
+      particles.push({
+        angle,
+        speed,
+        size,
+        life: 1
+      });
+    }
+    clickBursts.push({
+      x: px,
+      y: py,
+      startTime: Date.now(),
+      particles
+    });
+  }
+
+  function drawClickBursts(p) {
+    const now = Date.now();
+    for (let b = clickBursts.length - 1; b >= 0; b--) {
+      const burst = clickBursts[b];
+      const elapsed = now - burst.startTime;
+      const progress = Math.min(1, elapsed / BURST_DURATION_MS);
+      const easeOut = 1 - Math.pow(1 - progress, 1.4);
+
+      p.noStroke();
+      burst.particles.forEach(function (pt) {
+        const life = 1 - progress;
+        if (life <= 0) return;
+        const dist = pt.speed * easeOut * 140;
+        const gx = burst.x + Math.cos(pt.angle) * dist;
+        const gy = burst.y + Math.sin(pt.angle) * dist;
+        const alpha = life * 0.72;
+        const sz = pt.size * life;
+        p.fill(255, 248, 230, Math.round(alpha * 255));
+        p.ellipse(gx, gy, sz * 2, sz * 2);
+      });
+
+      if (progress >= 1) clickBursts.splice(b, 1);
+    }
+  }
+
+  window.mousePressed = function () {
+    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+      spawnClickBurst(mouseX, mouseY);
+    }
+  };
+
   function formatTime(sec) {
     if (!isFinite(sec) || sec < 0) return '0:00';
     var m = Math.floor(sec / 60);
@@ -383,6 +440,7 @@
     updateTimeline(audioEl, raw.time);
     background(10, 10, 15);
     if (visualEngine) visualEngine.draw(this, data);
+    drawClickBursts(this);
   };
 
   window.windowResized = function () {
