@@ -27,13 +27,15 @@ PigSystem.prototype.update = function (a) {
   this._r = Math.floor(255);
   this._g = Math.floor(200 - mode * 25 + intensity * 30);
   this._b = Math.floor(220 - intensity * 20);
+  this._alpha = (0.5 + intensity * 0.4) * (mode === 2 ? 1.1 : 1);
 };
 
 PigSystem.prototype.draw = function (p, x, y, w, h) {
   p.noStroke();
+  const alpha = Math.min(255, Math.floor((this._alpha || 0.7) * 255));
   this.bubbles.forEach(function (b) {
     const r = (b.baseR || 0.04) * (this.expand || 1) * Math.min(w, h);
-    p.fill(this._r || 255, this._g || 200, this._b || 220, 200);
+    p.fill(this._r || 255, this._g || 200, this._b || 220, alpha);
     p.circle(x + b.x * w, y + b.y * h, r);
   }, this);
 };
