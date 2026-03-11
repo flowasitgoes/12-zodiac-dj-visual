@@ -11,21 +11,37 @@
       position: absolute;
       left: 0;
       top: 0;
-      width: 60vw;
+      width: 66vw;
       height: 100%;
     }
     #controls {
       position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
       z-index: 10;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      padding: 10px 16px;
+      padding: 10px 20px;
       background: rgba(0,0,0,0.7);
-      border-radius: 12px;
+      border-radius: 12px 12px 0 0;
+    }
+    #controls .controls-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+      min-width: 0;
+    }
+    #controls .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
     }
     #controls button {
       padding: 8px 14px;
@@ -42,6 +58,7 @@
     #controls button:hover { background: rgba(255,255,255,0.1); }
     #controls button.primary { background: transparent; color: #fff; }
     #controls button.primary:hover { background: rgba(26, 127, 55, 0.3); }
+    #controls #btn-about { border: none; }
     #controls button svg,
     #controls .file-label svg {
       width: 22px;
@@ -132,33 +149,58 @@
       box-sizing: border-box;
       transition: width 0.15s linear;
     }
+    #controls a.streamline-link {
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 8px;
+      color: #eee;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.25);
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    #controls a.streamline-link:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.4);
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
   <div id="controls">
-    <div id="timeline-wrap">
-      <span id="timeline-current" aria-label="目前時間">0:00</span>
-      <div id="timeline-bar-wrap">
-        <div id="timeline-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <a id="link-soundcloud" class="streamline-link" href="https://soundcloud.com/gctw/huting" target="_blank" rel="noopener noreferrer" title="SoundCloud">SoundCloud</a>
+    <div class="controls-center">
+      <div id="timeline-wrap">
+        <span id="timeline-current" aria-label="目前時間">0:00</span>
+        <div id="timeline-bar-wrap">
+          <div id="timeline-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span id="timeline-duration" aria-label="總長度">0:00</span>
       </div>
-      <span id="timeline-duration" aria-label="總長度">0:00</span>
+      <select id="audio-select"><option value="">-- choose music --</option></select>
+      <button id="btn-play" class="primary" title="播放" aria-label="播放">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><polygon points="8,5 8,19 19,12" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="btn-pause" title="暫停" aria-label="暫停">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><rect x="6" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <label class="file-label" for="audio-file-input" title="選擇本機檔案" aria-label="選擇本機檔案">
+        <img id="music-thumbnail" src="" alt="" />
+        <span id="music-thumbnail-placeholder">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </label>
+      <input type="file" id="audio-file-input" accept="audio/*" />
+      <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
     </div>
-    <select id="audio-select"><option value="">-- choose music --</option></select>
-    <button id="btn-play" class="primary" title="播放" aria-label="播放">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><polygon points="8,5 8,19 19,12" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button id="btn-pause" title="暫停" aria-label="暫停">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><rect x="6" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="5" width="4" height="14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <label class="file-label" for="audio-file-input" title="選擇本機檔案" aria-label="選擇本機檔案">
-      <img id="music-thumbnail" src="" alt="" />
-      <span id="music-thumbnail-placeholder">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M4 4h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </label>
-    <input type="file" id="audio-file-input" accept="audio/*" />
-    <span id="local-file-name" class="local-file-name" aria-live="polite"></span>
+    <div class="controls-right">
+      <button id="btn-about" type="button" title="About" aria-label="About">about</button>
+      <a id="link-ifunlove" class="streamline-link" href="https://ifunlove.com/" target="_blank" rel="noopener noreferrer" title="ifunlove">ifunlove</a>
+    </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
   <script src="https://unpkg.com/jsmediatags@3.9.5/dist/jsmediatags.min.js"></script>

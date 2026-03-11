@@ -1,6 +1,7 @@
 /**
  * Visual Engine: 3x4 grid, 12 zodiac systems.
- * 約 1:00 後：圓環流轉 1 分鐘，接著每 2 秒一次 jump（多數只交換兩個生肖），每 10 秒一次全部交換.
+ * 約 1:00 後：圓環流轉，每 10 秒全部 jump、其間兩兩 jump（3 秒後其餘跟上）。
+ * 4:00 後：停止 3D 走動與輪轉，維持最後一幀的圓環靜態畫面。
  */
 function VisualEngine() {
   this.width = 800;
@@ -25,11 +26,12 @@ function VisualEngine() {
   this.REVEAL_DURATION = 30;
   this.CONVEYOR_START = 60;
   this.CONVEYOR_DURATION = 60;
+  this.CONVEYOR_END = 240;
   this.CONVEYOR_SPEED = 0.35;
   this.JUMP_START = this.CONVEYOR_START + this.CONVEYOR_DURATION;
   this.JUMP_FULL_INTERVAL = 10;
   this.JUMP_DURATION_FULL = 2.5;
-  this.JUMP_DURATION_PAIR = 1.5;
+  this.JUMP_DURATION_PAIR = 3.0;
   this.currentOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
   this.jumpScrollOffset = (this.JUMP_START - this.CONVEYOR_START) * this.CONVEYOR_SPEED;
   this.jumpPhaseStart = null;
@@ -58,20 +60,22 @@ VisualEngine.prototype.draw = function (p, audioData) {
   const energy = (audioData && audioData.energy) !== undefined ? audioData.energy : 0;
 
   const isReveal = time >= this.REVEAL_START && time < this.CONVEYOR_START;
-  const isConveyor = time >= this.CONVEYOR_START;
+  const isConveyorActive = time >= this.CONVEYOR_START && time < this.CONVEYOR_END;
+  const isConveyorFrozen = time >= this.CONVEYOR_END;
   const tFromStart = time - this.JUMP_START;
   let jumpPhaseStart = 0;
   let phaseDuration = this.JUMP_DURATION_FULL;
   let isFullSwapStep = false;
   let stepIndex = -1;
-  if (tFromStart >= 0) {
+  if (isConveyorActive && tFromStart >= 0) {
     const block = Math.floor(tFromStart / this.JUMP_FULL_INTERVAL);
     const tInBlock = tFromStart - block * this.JUMP_FULL_INTERVAL;
-    const stepStarts = [0, 2.5, 4, 5.5, 7, 8.5];
-    const stepDurations = [2.5, 1.5, 1.5, 1.5, 1.5, 1.5];
+    const stepStarts = [0, 3, 6];
+    const stepDurations = [this.JUMP_DURATION_FULL, this.JUMP_DURATION_PAIR, this.JUMP_DURATION_PAIR];
+    const stepsCount = stepStarts.length;
     stepIndex = 0;
-    while (stepIndex < 6 && tInBlock >= stepStarts[stepIndex] + stepDurations[stepIndex]) stepIndex++;
-    if (stepIndex < 6) {
+    while (stepIndex < stepsCount && tInBlock >= stepStarts[stepIndex] + stepDurations[stepIndex]) stepIndex++;
+    if (stepIndex < stepsCount) {
       jumpPhaseStart = this.JUMP_START + block * this.JUMP_FULL_INTERVAL + stepStarts[stepIndex];
       phaseDuration = stepDurations[stepIndex];
       isFullSwapStep = (stepIndex === 0);
@@ -79,14 +83,14 @@ VisualEngine.prototype.draw = function (p, audioData) {
       stepIndex = -1;
     }
   }
-  const isJump = stepIndex >= 0 && time >= jumpPhaseStart && time < jumpPhaseStart + phaseDuration;
-  const isConveyorAfterJump = time >= this.JUMP_START;
+  const isJump = isConveyorActive && stepIndex >= 0 && time >= jumpPhaseStart && time < jumpPhaseStart + phaseDuration;
+  const isConveyorAfterJump = time >= this.JUMP_START && time < this.CONVEYOR_END;
   const featuredIndex = isReveal
     ? Math.floor((time - this.REVEAL_START) / 5) % 12
     : -1;
-  const scrollOffset = (time >= this.CONVEYOR_START)
+  const scrollOffset = (time >= this.CONVEYOR_START && time < this.CONVEYOR_END)
     ? (time - this.CONVEYOR_START) * this.CONVEYOR_SPEED
-    : 0;
+    : (time >= this.CONVEYOR_END ? (this.CONVEYOR_END - this.CONVEYOR_START) * this.CONVEYOR_SPEED : 0);
 
   if (isJump) {
     if (this.jumpPhaseStart !== jumpPhaseStart) {
@@ -113,7 +117,7 @@ VisualEngine.prototype.draw = function (p, audioData) {
     this.appliedOrderPhase = this.jumpPhaseStart;
   }
 
-  const cameraScale = (isConveyor || isConveyorAfterJump) ? 0.98 : 1;
+  const cameraScale = (isConveyorAfterJump || isConveyorFrozen) ? 0.98 : 1;
   const cameraAngle = ((mode - 1.5) * 0.018 + (intensity - 0.5) * 0.04) * cameraScale;
   const cameraZoom = (0.96 + intensity * 0.08) * cameraScale;
   const panX = (energy - 0.5) * w * 0.02;
@@ -128,7 +132,7 @@ VisualEngine.prototype.draw = function (p, audioData) {
 
   if (isJump) {
     this.drawConveyorJump(p, audioData, ctx, cw, ch, w, h, time);
-  } else if (isConveyor || isConveyorAfterJump) {
+  } else if (isConveyorAfterJump || isConveyorFrozen) {
     this.drawConveyor(p, audioData, ctx, cw, ch, scrollOffset, w, h, this.currentOrder);
   } else {
     this.drawGrid(p, audioData, ctx, cw, ch, isReveal, featuredIndex);

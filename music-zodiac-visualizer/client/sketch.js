@@ -261,7 +261,7 @@
   }
 
   function computeCanvasSize() {
-    const w = Math.floor(windowWidth * 0.6);
+    const w = Math.floor(windowWidth * 0.66);
     const h = windowHeight;
     return { w, h };
   }
