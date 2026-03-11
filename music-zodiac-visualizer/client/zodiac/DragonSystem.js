@@ -1,6 +1,5 @@
 /**
- * Dragon: 多層不同濃度的雲 — 遠近、四面八方飄動.
- * 每 10 秒觸發一次「爆炸／散列」：粒子從中心向外散開再緩慢收回，療癒感.
+ * Dragon: 多層雲霧飄動 + 每 10 秒一次「漩渦」：繞中心軌道粒子先向內收斂再擴散，帶殘影，療癒感.
  */
 function DragonSystem() {
   this.clouds = [];
@@ -8,9 +7,29 @@ function DragonSystem() {
   for (let i = 0; i < layerCount; i++) {
     this.clouds.push(this.createCloud(i));
   }
-  this.burstParticles = [];
-  this._lastBurstCycle = -1;
+  this.orbiters = [];
+  this._orbitersReady = false;
+  this._vortexSegment = -1;
 }
+
+DragonSystem.prototype.initOrbiters = function (w, h) {
+  if (this._orbitersReady) return;
+  const count = 50 + Math.floor(30 * Math.random());
+  const minSize = Math.min(w, h);
+  for (let i = 0; i < count; i++) {
+    const r1 = Math.random() * 0.2 + 0.05;
+    const r2 = Math.random() * 0.25 + 0.2;
+    const orbitRadius = (r1 + r2) / 2;
+    const normRadius = Math.min(1, orbitRadius / 0.42);
+    this.orbiters.push({
+      orbitRadius: orbitRadius,
+      angle: Math.random() * Math.PI * 2,
+      speed: (0.8 + Math.random() * 1.2) * 0.012,
+      alpha: 0.35 * (1 - normRadius * 0.7)
+    });
+  }
+  this._orbitersReady = true;
+};
 
 DragonSystem.prototype.createCloud = function (i) {
   const side = Math.floor(Math.random() * 4);
@@ -71,42 +90,24 @@ DragonSystem.prototype.update = function (a) {
   this._intensity = intensity;
   this._mode = mode;
 
-  const BURST_INTERVAL = 10;
-  const BURST_OUT_DURATION = 2.5;
-  const BURST_RETURN_DURATION = 3.5;
-  const tInCycle = time % BURST_INTERVAL;
-  const burstCycle = Math.floor(time / BURST_INTERVAL);
-
-  if (tInCycle >= 6) {
-    this._lastBurstCycle = burstCycle - 1;
-  }
-  if (tInCycle < BURST_OUT_DURATION && burstCycle > this._lastBurstCycle) {
-    this._lastBurstCycle = burstCycle;
-    this.burstParticles = [];
-    const n = 50 + Math.floor(Math.random() * 25);
-    for (let i = 0; i < n; i++) {
-      this.burstParticles.push({
-        angle: Math.random() * Math.PI * 2,
-        targetR: 0.15 + Math.random() * 0.35,
-        opacity: 0.3 + Math.random() * 0.5
-      });
+  const VORTEX_INTERVAL = 10;
+  const VORTEX_DURATION = 5;
+  const inWindow = time % VORTEX_INTERVAL;
+  this._vortexActive = time >= VORTEX_INTERVAL && inWindow < VORTEX_DURATION;
+  if (this._vortexActive) {
+    const segment = Math.floor(time / VORTEX_INTERVAL);
+    if (segment !== this._vortexSegment) {
+      this._vortexSegment = segment;
+      this._vortexCenterX = 0.3 + Math.random() * 0.4;
+      this._vortexCenterY = 0.3 + Math.random() * 0.4;
     }
-  }
-
-  if (this.burstParticles.length > 0) {
-    if (tInCycle < BURST_OUT_DURATION) {
-      const progress = tInCycle / BURST_OUT_DURATION;
-      const ease = 1 - Math.pow(1 - progress, 1.4);
-      this.burstParticles.forEach(function (pt) {
-        pt.currentR = pt.targetR * ease;
-      });
-    } else if (tInCycle < BURST_OUT_DURATION + BURST_RETURN_DURATION) {
-      const progress = (tInCycle - BURST_OUT_DURATION) / BURST_RETURN_DURATION;
-      const ease = 1 - Math.pow(progress, 1.2);
-      this.burstParticles.forEach(function (pt) {
-        pt.currentR = pt.targetR * ease;
-      });
-    }
+    const t = inWindow / VORTEX_DURATION;
+    this._vortexPhase = t < 0.5
+      ? 1 - t * 2
+      : (t - 0.5) * 2;
+    this.orbiters.forEach(function (o) {
+      o.angle += o.speed * (t < 0.5 ? 1.2 : 0.85);
+    });
   }
 };
 
@@ -114,40 +115,52 @@ DragonSystem.prototype.draw = function (p, x, y, w, h) {
   p.noStroke();
   const intensity = this._intensity !== undefined ? this._intensity : 0.5;
   const mode = this._mode !== undefined ? this._mode : 0;
-  const cx = x + w * 0.5;
-  const cy = y + h * 0.5;
+
+  if (this._vortexActive) {
+    this.initOrbiters(w, h);
+    const vcx = x + (this._vortexCenterX !== undefined ? this._vortexCenterX : 0.5) * w;
+    const vcy = y + (this._vortexCenterY !== undefined ? this._vortexCenterY : 0.5) * h;
+    const trailR = Math.min(w, h) * 0.5;
+    const ctx = p.drawingContext;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(10,8,18,0.14)';
+    ctx.beginPath();
+    ctx.ellipse(vcx, vcy, trailR, trailR, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   this.clouds.forEach(function (c) {
-    const cgx = x + c.x * w;
-    const cgy = y + c.y * h;
+    const cx = x + c.x * w;
+    const cy = y + c.y * h;
     const r = Math.max(w, h) * c.size * (0.9 + intensity * 0.2);
     const alpha = Math.min(0.55, c.opacity * (0.7 + intensity * 0.5));
-    const g = p.drawingContext.createRadialGradient(cgx, cgy, 0, cgx, cgy, r);
+    const g = p.drawingContext.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0, 'rgba(200,180,255,' + alpha * 0.9 + ')');
     g.addColorStop(0.4, 'rgba(160,140,230,' + alpha * 0.5 + ')');
     g.addColorStop(0.7, 'rgba(120,100,200,' + alpha * 0.2 + ')');
     g.addColorStop(1, 'rgba(90,70,160,0)');
     p.drawingContext.fillStyle = g;
     p.drawingContext.beginPath();
-    p.drawingContext.ellipse(cgx, cgy, r, r * 0.7, 0, 0, Math.PI * 2);
+    p.drawingContext.ellipse(cx, cy, r, r * 0.7, 0, 0, Math.PI * 2);
     p.drawingContext.fill();
   });
 
-  if (this.burstParticles && this.burstParticles.length > 0) {
-    const baseR = Math.min(w, h) * 0.5;
-    this.burstParticles.forEach(function (pt) {
-      const px = cx + Math.cos(pt.angle) * (pt.currentR || 0) * baseR;
-      const py = cy + Math.sin(pt.angle) * (pt.currentR || 0) * baseR;
-      const dotR = Math.max(1.5, baseR * 0.012);
-      const alpha = (pt.opacity || 0.5) * (0.6 + intensity * 0.3);
-      const g = p.drawingContext.createRadialGradient(px, py, 0, px, py, dotR * 2);
-      g.addColorStop(0, 'rgba(220,200,255,' + alpha + ')');
-      g.addColorStop(0.5, 'rgba(160,140,230,' + alpha * 0.4 + ')');
-      g.addColorStop(1, 'rgba(120,100,200,0)');
-      p.drawingContext.fillStyle = g;
-      p.drawingContext.beginPath();
-      p.drawingContext.arc(px, py, dotR * 2, 0, Math.PI * 2);
-      p.drawingContext.fill();
+  if (this._vortexActive && this.orbiters.length) {
+    const vcx = x + (this._vortexCenterX !== undefined ? this._vortexCenterX : 0.5) * w;
+    const vcy = y + (this._vortexCenterY !== undefined ? this._vortexCenterY : 0.5) * h;
+    const phase = this._vortexPhase !== undefined ? this._vortexPhase : 1;
+    const baseR = Math.min(w, h) * 0.42;
+    this.orbiters.forEach(function (o) {
+      const r = baseR * o.orbitRadius * (0.25 + 0.75 * phase);
+      const px = vcx + Math.cos(o.angle) * r;
+      const py = vcy + Math.sin(o.angle) * r;
+      const alpha = o.alpha * (0.6 + 0.4 * phase);
+      p.noStroke();
+      p.fill(200, 185, 255, alpha * 255);
+      p.circle(px, py, 2.5);
     });
+    p.noFill();
   }
 };
