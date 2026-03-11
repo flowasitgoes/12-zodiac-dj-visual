@@ -35,6 +35,7 @@ GoatSystem.prototype.draw = function (p, x, y, w, h) {
   p.noFill();
   const cx = x + w * 0.5;
   const cy = y + h * 0.7;
-  const lenScale = 0.25 * (0.85 + (this._strokeWeight || 0) * 0.05);
-  this._branch(p, cx, cy, w * 0.4, h * 0.4, lenScale, -Math.PI / 2, this.depth || 6);
+  const sizeScale = 1.28;
+  const lenScale = 0.25 * (0.85 + (this._strokeWeight || 0) * 0.05) * sizeScale;
+  this._branch(p, cx, cy, w * 0.4 * sizeScale, h * 0.4 * sizeScale, lenScale, -Math.PI / 2, this.depth || 6);
 };

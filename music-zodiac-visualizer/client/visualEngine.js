@@ -1,6 +1,6 @@
 /**
  * Visual Engine: 3x4 grid, 12 zodiac systems.
- * 約 1:00 後：圓環流轉 1 分鐘，接著每個生肖 jump 交換位子（過場動畫），然後繼續流轉.
+ * 約 1:00 後：圓環流轉 1 分鐘，接著每 5 秒一次 jump 交換位子（12 個生肖都重排），然後繼續流轉.
  */
 function VisualEngine() {
   this.width = 800;
@@ -28,8 +28,13 @@ function VisualEngine() {
   this.CONVEYOR_SPEED = 0.35;
   this.JUMP_START = this.CONVEYOR_START + this.CONVEYOR_DURATION;
   this.JUMP_DURATION = 2.5;
-  this.swapOrder = null;
-  this.jumpScrollOffset = 0;
+  this.JUMP_INTERVAL = 5;
+  this.currentOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  this.jumpScrollOffset = (this.JUMP_START - this.CONVEYOR_START) * this.CONVEYOR_SPEED;
+  this.jumpPhaseStart = null;
+  this.jumpFromOrder = null;
+  this.jumpToOrder = null;
+  this.appliedOrderPhase = null;
 }
 
 VisualEngine.prototype.resize = function (w, h) {
@@ -52,8 +57,10 @@ VisualEngine.prototype.draw = function (p, audioData) {
 
   const isReveal = time >= this.REVEAL_START && time < this.CONVEYOR_START;
   const isConveyor = time >= this.CONVEYOR_START;
-  const isJump = time >= this.JUMP_START && time < this.JUMP_START + this.JUMP_DURATION;
-  const isConveyorAfterJump = time >= this.JUMP_START + this.JUMP_DURATION;
+  const jumpPhaseIndex = time >= this.JUMP_START ? Math.floor((time - this.JUMP_START) / this.JUMP_INTERVAL) : -1;
+  const jumpPhaseStart = jumpPhaseIndex >= 0 ? this.JUMP_START + jumpPhaseIndex * this.JUMP_INTERVAL : 0;
+  const isJump = time >= this.JUMP_START && time < jumpPhaseStart + this.JUMP_DURATION;
+  const isConveyorAfterJump = time >= this.JUMP_START;
   const featuredIndex = isReveal
     ? Math.floor((time - this.REVEAL_START) / 5) % 12
     : -1;
@@ -61,9 +68,15 @@ VisualEngine.prototype.draw = function (p, audioData) {
     ? (time - this.CONVEYOR_START) * this.CONVEYOR_SPEED
     : 0;
 
-  if (time >= this.JUMP_START && !this.swapOrder) {
-    this.swapOrder = randomPermutation(12);
-    this.jumpScrollOffset = (this.JUMP_START - this.CONVEYOR_START) * this.CONVEYOR_SPEED;
+  if (isJump) {
+    if (this.jumpPhaseStart !== jumpPhaseStart) {
+      this.jumpPhaseStart = jumpPhaseStart;
+      this.jumpFromOrder = this.currentOrder.slice();
+      this.jumpToOrder = shuffleArray(this.currentOrder.slice());
+    }
+  } else if (this.appliedOrderPhase !== jumpPhaseStart && jumpPhaseIndex >= 0 && time >= jumpPhaseStart + this.JUMP_DURATION) {
+    this.currentOrder = (this.jumpToOrder || this.currentOrder).slice();
+    this.appliedOrderPhase = jumpPhaseStart;
   }
 
   const cameraScale = (isConveyor || isConveyorAfterJump) ? 0.98 : 1;
@@ -82,8 +95,7 @@ VisualEngine.prototype.draw = function (p, audioData) {
   if (isJump) {
     this.drawConveyorJump(p, audioData, ctx, cw, ch, w, h, time);
   } else if (isConveyor || isConveyorAfterJump) {
-    const order = (isConveyorAfterJump && this.swapOrder) ? this.swapOrder : null;
-    this.drawConveyor(p, audioData, ctx, cw, ch, scrollOffset, w, h, order);
+    this.drawConveyor(p, audioData, ctx, cw, ch, scrollOffset, w, h, this.currentOrder);
   } else {
     this.drawGrid(p, audioData, ctx, cw, ch, isReveal, featuredIndex);
   }
@@ -95,6 +107,15 @@ function randomPermutation(n) {
   const a = [];
   for (let i = 0; i < n; i++) a[i] = i;
   for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     const t = a[i]; a[i] = a[j]; a[j] = t;
   }
@@ -140,7 +161,7 @@ VisualEngine.prototype.drawConveyor = function (p, audioData, ctx, cw, ch, scrol
   const angleStep = (Math.PI * 2) / 12;
 
   for (let i = 0; i < this.systems.length; i++) {
-    const slotIndex = order ? order[i] : i;
+    const slotIndex = (order && order.length === 12) ? order[i] : i;
     const sys = this.systems[slotIndex];
     sys.update(audioData);
     const angle = (i - scrollOffset) * angleStep;
@@ -173,15 +194,20 @@ VisualEngine.prototype.drawConveyorJump = function (p, audioData, ctx, cw, ch, w
   const radiusY = h * 0.38;
   const angleStep = (Math.PI * 2) / 12;
   const scrollOffset = this.jumpScrollOffset;
+  const phaseStart = this.jumpPhaseStart;
+  const fromOrder = this.jumpFromOrder;
+  const toOrder = this.jumpToOrder;
+  if (!fromOrder || !toOrder || phaseStart == null) return;
 
-  const t = Math.min(1, (time - this.JUMP_START) / this.JUMP_DURATION);
+  const t = Math.min(1, (time - phaseStart) / this.JUMP_DURATION);
   const ease = 1 - Math.pow(1 - t, 2.2);
   const jumpY = 4 * (h * 0.08) * t * (1 - t);
   const jumpScale = 1 + 0.15 * 4 * t * (1 - t);
 
   for (let toSlot = 0; toSlot < this.systems.length; toSlot++) {
-    const fromSlot = this.swapOrder[toSlot];
-    const sys = this.systems[fromSlot];
+    const sysIndex = toOrder[toSlot];
+    const fromSlot = fromOrder.indexOf(sysIndex);
+    const sys = this.systems[sysIndex];
     sys.update(audioData);
 
     const fromAngle = (fromSlot - scrollOffset) * angleStep;
