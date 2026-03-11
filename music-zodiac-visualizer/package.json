@@ -1,0 +1,21 @@
+{
+  "name": "music-zodiac-visualizer",
+  "version": "1.0.0",
+  "description": "12 Chinese Zodiac generative music visualizer",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js --watch server --watch client --watch public"
+  },
+  "keywords": ["music", "visualizer", "zodiac", "generative-art"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "meyda": "^5.2.2",
+    "node-wav": "^0.0.2",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

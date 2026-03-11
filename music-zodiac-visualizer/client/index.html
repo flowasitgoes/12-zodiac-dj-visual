@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>12 Zodiac Music Visualizer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0a; }
+    #canvas-container { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+    #controls {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 12px;
+    }
+    #controls button {
+      padding: 8px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #333;
+      color: #eee;
+    }
+    #controls button:hover { background: #555; }
+    #controls button.primary { background: #1a7f37; color: #fff; }
+    #controls select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="controls">
+    <select id="audio-select"><option value="">-- 選擇音檔 --</option></select>
+    <button id="btn-play" class="primary">播放</button>
+    <button id="btn-pause">暫停</button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="visualEngine.js"></script>
+  <script src="zodiac/RatSystem.js"></script>
+  <script src="zodiac/OxSystem.js"></script>
+  <script src="zodiac/TigerSystem.js"></script>
+  <script src="zodiac/RabbitSystem.js"></script>
+  <script src="zodiac/DragonSystem.js"></script>
+  <script src="zodiac/SnakeSystem.js"></script>
+  <script src="zodiac/HorseSystem.js"></script>
+  <script src="zodiac/GoatSystem.js"></script>
+  <script src="zodiac/MonkeySystem.js"></script>
+  <script src="zodiac/RoosterSystem.js"></script>
+  <script src="zodiac/DogSystem.js"></script>
+  <script src="zodiac/PigSystem.js"></script>
+  <script src="sketch.js"></script>
+</body>
+</html>
