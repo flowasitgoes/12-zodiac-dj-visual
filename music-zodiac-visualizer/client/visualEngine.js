@@ -1,6 +1,6 @@
 /**
  * Visual Engine: 3x4 grid, 12 zodiac systems.
- * 1:30 後：每 5 秒輪流凸顯一個生肖（共 60 秒），接著「旋轉壽司」式流轉.
+ * 1:30 後：每 5 秒輪流凸顯一個生肖（共 60 秒），接著「旋轉壽司」式流轉（3D 旋轉木馬感）.
  */
 function VisualEngine() {
   this.width = 800;
@@ -52,7 +52,6 @@ VisualEngine.prototype.draw = function (p, audioData) {
     : -1;
   const scrollOffset = isConveyor ? (time - this.CONVEYOR_START) * this.CONVEYOR_SPEED : 0;
 
-  // —— 整體相機：旋轉、縮放、輕微平移（流轉時減弱一點）——
   const cameraScale = isConveyor ? 0.98 : 1;
   const cameraAngle = ((mode - 1.5) * 0.018 + (intensity - 0.5) * 0.04) * cameraScale;
   const cameraZoom = (0.96 + intensity * 0.08) * cameraScale;
@@ -67,7 +66,7 @@ VisualEngine.prototype.draw = function (p, audioData) {
   p.translate(-w / 2, -h / 2);
 
   if (isConveyor) {
-    this.drawConveyor(p, audioData, ctx, cw, ch, scrollOffset);
+    this.drawConveyor(p, audioData, ctx, cw, ch, scrollOffset, w, h);
   } else {
     this.drawGrid(p, audioData, ctx, cw, ch, isReveal, featuredIndex);
   }
@@ -106,23 +105,30 @@ VisualEngine.prototype.drawGrid = function (p, audioData, ctx, cw, ch, isReveal,
   }
 };
 
-VisualEngine.prototype.drawConveyor = function (p, audioData, ctx, cw, ch, scrollOffset) {
-  const mode = (audioData && typeof audioData.mode === 'number') ? audioData.mode : 0;
-  const intensity = (audioData && typeof audioData.intensity === 'number') ? audioData.intensity : 0.5;
+VisualEngine.prototype.drawConveyor = function (p, audioData, ctx, cw, ch, scrollOffset, w, h) {
+  const centerX = w * 0.5;
+  const centerY = h * 0.5;
+  const radiusX = w * 0.48;
+  const radiusY = h * 0.38;
+  const angleStep = (Math.PI * 2) / 12;
+
   for (let i = 0; i < this.systems.length; i++) {
     const sys = this.systems[i];
     sys.update(audioData);
-    let pos = (i - (scrollOffset % 12) + 12) % 12;
-    if (pos < 0) pos += 12;
-    const px = (pos % 4) * cw;
-    const py = (pos / 4) * ch;
-    const cellTilt = ((pos % 4) - 1.5) * 0.008 + (Math.floor(pos / 4) - 1) * 0.006 + (mode - 1) * 0.008 + (intensity - 0.5) * 0.015;
+    const angle = (i - scrollOffset) * angleStep;
+    const depth = Math.cos(angle);
+    const scale = 0.62 + 0.38 * (depth * 0.5 + 0.5);
+    const alpha = 0.55 + 0.45 * (depth * 0.5 + 0.5);
+    const px = centerX + Math.cos(angle) * radiusX;
+    const py = centerY + Math.sin(angle) * radiusY * 0.85;
+
     p.push();
     p.translate(px, py);
-    p.translate(cw / 2, ch / 2);
-    p.rotate(cellTilt);
+    p.rotate(angle);
+    p.scale(scale);
     p.translate(-cw / 2, -ch / 2);
     ctx.save();
+    ctx.globalAlpha = alpha;
     ctx.beginPath();
     ctx.rect(0, 0, cw, ch);
     ctx.clip();
